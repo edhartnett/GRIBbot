@@ -67,14 +67,24 @@ if __name__=="__main__":
     output = app.invoke({"messages": input_messages}, config)
     output["messages"][-1].pretty_print()
 
-    input_messages = [HumanMessage("What is the airspeed velocity of an unladen swallow?")]
-    # output = app.invoke({"messages": input_messages}, config)
-    # output["messages"][-1].pretty_print()
+    while True:
+    # Get what the user wants to say
+        user_input = input("You: ")
+        
+        # Check if the user wants to leave
+        if user_input.lower() == 'quit':
+            print("Goodbye!")
+            break
+        input_messages = [HumanMessage(user_input)]
+        output = app.invoke({"messages": input_messages}, config)
+        output["messages"][-1].pretty_print()
 
-    for chunk, metadata in app.stream(
-        {"messages": input_messages, "language": "English"},
-        config,
-        stream_mode="messages",
-    ):
-        if isinstance(chunk, AIMessage):  # Filter to just model responses
-            print(chunk.content, end="|")
+        # for chunk, metadata in app.stream(
+        #     {"messages": input_messages, "language": "English"},
+        #     config,
+        #     stream_mode="messages",
+        # ):
+        #     if isinstance(chunk, AIMessage):  # Filter to just model responses
+        #         print(chunk.content)
+
+            
