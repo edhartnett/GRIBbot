@@ -4,6 +4,7 @@ from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
+import panel as pn
 
 
 # os.environ["LANGSMITH_TRACING"] = "true"
@@ -67,17 +68,20 @@ if __name__=="__main__":
     output = app.invoke({"messages": input_messages}, config)
     output["messages"][-1].pretty_print()
 
-    while True:
-    # Get what the user wants to say
-        user_input = input("You: ")
+    pn.extension()
+
+    pn.panel("Hello World").servable()
+    # while True:
+    # # Get what the user wants to say
+    #     user_input = input("You: ")
         
-        # Check if the user wants to leave
-        if user_input.lower() == 'quit':
-            print("Goodbye!")
-            break
-        input_messages = [HumanMessage(user_input)]
-        output = app.invoke({"messages": input_messages}, config)
-        output["messages"][-1].pretty_print()
+    #     # Check if the user wants to leave
+    #     if user_input.lower() == 'quit':
+    #         print("Goodbye!")
+    #         break
+    #     input_messages = [HumanMessage(user_input)]
+    #     output = app.invoke({"messages": input_messages}, config)
+    #     output["messages"][-1].pretty_print()
 
         # for chunk, metadata in app.stream(
         #     {"messages": input_messages, "language": "English"},

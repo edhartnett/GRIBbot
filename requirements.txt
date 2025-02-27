@@ -1,1 +1,6 @@
 langchain-anthropic
+panel
+jupyter_bokeh 
+altair 
+vega_datasets 
+ipykernel
