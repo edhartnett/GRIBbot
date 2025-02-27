@@ -29,13 +29,13 @@ if __name__=="__main__":
     from langchain.chat_models import init_chat_model
 
     model = init_chat_model("claude-3-5-sonnet-latest", model_provider="anthropic")
-    messages = [
-        SystemMessage("Translate the following from English into Italian"),
-        HumanMessage("hi!"),
-    ]
+    # messages = [
+    #     SystemMessage("Translate the following from English into Italian"),
+    #     HumanMessage("hi!"),
+    # ]
 
-    print(model.invoke(messages))
-    print("done")
+    # print(model.invoke(messages))
+    # print("done")
 
 
     # Define a new graph
@@ -56,21 +56,30 @@ if __name__=="__main__":
     memory = MemorySaver()
     app = workflow.compile(checkpointer=memory)
     config = {"configurable": {"thread_id": "abc123"}}
-    query = "Hi! I'm Bob."
+    # query = "Hi! I'm Bob."
 
-    input_messages = [HumanMessage(query)]
-    output = app.invoke({"messages": input_messages}, config)
-    output["messages"][-1].pretty_print()  # output contains all messages in state
+    # input_messages = [HumanMessage(query)]
+    # output = app.invoke({"messages": input_messages}, config)
+    # output["messages"][-1].pretty_print()  # output contains all messages in state
 
-    query = "What's my name?"
+    # query = "What's my name?"
 
-    input_messages = [HumanMessage(query)]
-    output = app.invoke({"messages": input_messages}, config)
-    output["messages"][-1].pretty_print()
+    # input_messages = [HumanMessage(query)]
+    # output = app.invoke({"messages": input_messages}, config)
+    # output["messages"][-1].pretty_print()
 
     pn.extension()
+    def get_response(contents, user, instance):
+        input_messages = [HumanMessage(contents)]
+        output = app.invoke({"messages": input_messages}, config)
+        response = output["messages"][-1].content
+        return response
 
-    pn.panel("Hello World").servable()
+    intro = "I am a chatbot that can answer questions the GRIB data format."
+    chat_bot = pn.chat.ChatInterface(callback=get_response, max_height=500)
+    chat_bot.send(intro, user="Assistant", respond=False)
+    chat_bot.show()
+    chat_bot.servable()
     # while True:
     # # Get what the user wants to say
     #     user_input = input("You: ")

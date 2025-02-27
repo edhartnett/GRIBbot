@@ -3,8 +3,10 @@ panel
 jupyter_bokeh 
 altair 
 vega_datasets 
-ipykernelpython-dotenv
+ipykernel
+python-dotenv
 langchain
 pinecone-client
 langchain-community
 openai
+langgraph
