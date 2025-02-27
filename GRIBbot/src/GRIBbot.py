@@ -1,7 +1,7 @@
 import getpass
 import os
 from langchain.chat_models import init_chat_model
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import START, MessagesState, StateGraph
 
@@ -68,5 +68,13 @@ if __name__=="__main__":
     output["messages"][-1].pretty_print()
 
     input_messages = [HumanMessage("What is the airspeed velocity of an unladen swallow?")]
-    output = app.invoke({"messages": input_messages}, config)
-    output["messages"][-1].pretty_print()
+    # output = app.invoke({"messages": input_messages}, config)
+    # output["messages"][-1].pretty_print()
+
+    for chunk, metadata in app.stream(
+        {"messages": input_messages, "language": "English"},
+        config,
+        stream_mode="messages",
+    ):
+        if isinstance(chunk, AIMessage):  # Filter to just model responses
+            print(chunk.content, end="|")
