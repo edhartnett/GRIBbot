@@ -54,3 +54,19 @@ if __name__=="__main__":
     # Add memory
     memory = MemorySaver()
     app = workflow.compile(checkpointer=memory)
+    config = {"configurable": {"thread_id": "abc123"}}
+    query = "Hi! I'm Bob."
+
+    input_messages = [HumanMessage(query)]
+    output = app.invoke({"messages": input_messages}, config)
+    output["messages"][-1].pretty_print()  # output contains all messages in state
+
+    query = "What's my name?"
+
+    input_messages = [HumanMessage(query)]
+    output = app.invoke({"messages": input_messages}, config)
+    output["messages"][-1].pretty_print()
+
+    input_messages = [HumanMessage("What is the airspeed velocity of an unladen swallow?")]
+    output = app.invoke({"messages": input_messages}, config)
+    output["messages"][-1].pretty_print()
