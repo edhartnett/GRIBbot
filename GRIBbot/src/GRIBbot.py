@@ -2,6 +2,9 @@ import getpass
 import os
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import START, MessagesState, StateGraph
+
 
 # os.environ["LANGSMITH_TRACING"] = "true"
 # os.environ["LANGSMITH_API_KEY"] = getpass.getpass()
@@ -33,3 +36,21 @@ if __name__=="__main__":
     print(model.invoke(messages))
     print("done")
 
+
+    # Define a new graph
+    workflow = StateGraph(state_schema=MessagesState)
+
+
+    # Define the function that calls the model
+    def call_model(state: MessagesState):
+        response = model.invoke(state["messages"])
+        return {"messages": response}
+
+
+    # Define the (single) node in the graph
+    workflow.add_edge(START, "model")
+    workflow.add_node("model", call_model)
+
+    # Add memory
+    memory = MemorySaver()
+    app = workflow.compile(checkpointer=memory)
