@@ -22,6 +22,53 @@ class GRIBbot:
 if __name__=="__main__":
     gribbot = GRIBbot()
     gribbot.main()
+
+    from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    from langchain_community.vectorstores import FAISS
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+    # List of PDFs to process
+    #pdf_files = ["GRIB2-for-DUMMIES.pdf", "WMO-306-v-I-2-2023_en.pdf"] 
+    pdf_files = ["GRIB2-for-DUMMIES.pdf"] 
+
+    # Websites to ingest
+    web_pages = [
+        "https://www.nco.ncep.noaa.gov/pmb/docs/grib2/grib2_doc/",
+        "https://noaa-emc.github.io/NCEPLIBS-g2c/",
+        "https://noaa-emc.github.io/NCEPLIBS-g2/",
+    ]
+
+    # Load and combine all documents
+    all_documents = []
+
+    for pdf_file in pdf_files:
+        loader = PyPDFLoader(pdf_file)
+        documents = loader.load()
+        all_documents.extend(documents)
+
+    # Load web pages
+    for page_url in web_pages:
+        loader = WebBaseLoader(page_url)
+        documents = loader.load()
+        for doc in documents:
+            doc.metadata["source"] = page_url  # Track source URL
+        all_documents.extend(documents)
+    
+    # Split all documents into smaller chunks
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    docs = text_splitter.split_documents(all_documents)    # Step 1: Load PDF file
+
+    # Step 3: Use HuggingFace embeddings (you can choose a different embedding model if needed)
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+    # Step 4: Store embeddings into a FAISS vector database
+    vector_store = FAISS.from_documents(docs, embedding_model)
+
+    # Optional: Save the FAISS index to disk for later use
+    vector_store.save_local("faiss_index")
+
+    print("PDFs and websites have been processed and stored in FAISS vector store.")
     
     if not os.environ.get("ANTHROPIC_API_KEY"):
         os.environ["ANTHROPIC_API_KEY"] = getpass.getpass("Enter API key for Anthropic: ")
@@ -68,13 +115,21 @@ if __name__=="__main__":
     # output = app.invoke({"messages": input_messages}, config)
     # output["messages"][-1].pretty_print()
     prompt = """
-    you are a helpful assistant. You answer questions about GRIB and 
+    You are a helpful assistant. You answer questions about GRIB and 
     other data formats. For any other kind of question, you reply that 
-    you only answer questions about GRIB. Answer this question: {text} 
+    you only answer questions about GRIB.\n Use the following context to answer 
+    the question:\n {context}\n Answer this question:\n {text} 
     """
     pn.extension()
     def get_response(contents, user, instance):
-        input_messages = [HumanMessage(prompt.format(text=contents))]
+        # Perform similarity search on the vector store using the user's question
+        retrieved_docs = vector_store.similarity_search(contents, k=5)
+
+        # Combine the content of retrieved documents into a context string
+        context = "\n\n".join([doc.page_content for doc in retrieved_docs])
+
+        input_messages = [HumanMessage(prompt.format(context=context, text=contents))]
+        #print(input_messages)
         output = app.invoke({"messages": input_messages}, config)
         response = output["messages"][-1].content
         return response

@@ -10,3 +10,5 @@ pinecone-client
 langchain-community
 openai
 langgraph
+pypdf 
+faiss-cpu
