@@ -67,16 +67,20 @@ if __name__=="__main__":
     # input_messages = [HumanMessage(query)]
     # output = app.invoke({"messages": input_messages}, config)
     # output["messages"][-1].pretty_print()
-
+    prompt = """
+    you are a helpful assistant. You answer questions about GRIB and 
+    other data formats. For any other kind of question, you reply that 
+    you only answer questions about GRIB. Answer this question: {text} 
+    """
     pn.extension()
     def get_response(contents, user, instance):
-        input_messages = [HumanMessage(contents)]
+        input_messages = [HumanMessage(prompt.format(text=contents))]
         output = app.invoke({"messages": input_messages}, config)
         response = output["messages"][-1].content
         return response
 
     intro = "I am a chatbot that can answer questions the GRIB data format."
-    chat_bot = pn.chat.ChatInterface(callback=get_response, max_height=500)
+    chat_bot = pn.chat.ChatInterface(callback=get_response)
     chat_bot.send(intro, user="Assistant", respond=False)
     chat_bot.show()
     chat_bot.servable()
